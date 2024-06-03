@@ -86,8 +86,22 @@
       <button>Trigger a Global Error</button>
     </section>
   </main>
-
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "850a1523e88c469988b7da107835a376"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
+                          
+  <script>
+    class InputError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "InputError";
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,7 +109,31 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try{
+        if (firstNum === '' || secondNum === ''){
+          throw new InputError("Input is empty")
+        }
+
+        if (isNaN(firstNum)){
+          throw new InputError("First input has to be a number")
+        }
+
+        if (isNaN(secondNum)){
+          throw new InputError("Second input has to be a number")
+        }
+
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } 
+      catch (error){
+        const errorMsg = `${error}`;
+        console.error(errorMsg);
+        output.innerHTML = errorMsg;
+      }
+      finally {
+        console.log('Computation done!')
+      }
+      
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
@@ -178,6 +216,15 @@
     errorBtns[13].addEventListener('click', () => {
       console.trace();
     })
+
+    // Trigger a global error
+    errorBtns[14].addEventListener('click', () => {
+      throw new Error("trigger a global error");
+    })
+
+    window.onerror = (event, source, lineno, colno, error) => {
+      console.log("Sadly an error happened my friend")
+    };
 
 
   </script>
